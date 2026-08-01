@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>详情列表</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+                "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue", Helvetica, Arial, sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .container {
+            max-width: 750px;
+            margin: 0 auto;
+            padding: 12px;
+        }
+
+        .list-item {
+            background-color: #fff;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+        }
+
+        .item-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 16px;
+            cursor: pointer;
+            user-select: none;
+            -webkit-user-select: none;
+            transition: background-color 0.2s;
+        }
+
+        .item-header:active {
+            background-color: #f0f0f0;
+        }
+
+        .item-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 22px;
+            height: 22px;
+            background-color: #4a90d9;
+            color: #fff;
+            border-radius: 50%;
+            font-size: 12px;
+            font-weight: 600;
+            flex-shrink: 0;
+            margin-right: 10px;
+        }
+
+        .item-title {
+            flex: 1;
+            font-size: 15px;
+            font-weight: 500;
+            color: #333;
+            line-height: 1.4;
+        }
+
+        .item-arrow {
+            width: 20px;
+            height: 20px;
+            flex-shrink: 0;
+            margin-left: 8px;
+            transition: transform 0.3s ease;
+        }
+
+        .item-arrow svg {
+            width: 100%;
+            height: 100%;
+            fill: #999;
+        }
+
+        .list-item.active .item-arrow {
+            transform: rotate(180deg);
+        }
+
+        .item-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.35s ease;
+        }
+
+        .item-content-inner {
+            padding: 0 16px 14px 48px;
+            font-size: 14px;
+            color: #666;
+            line-height: 1.7;
+        }
+
+        .item-content-inner img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 8px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="list" id="list"></div>
+    </div>
+
+    <script>
+        // 列表数据，可按需修改
+        var listData = [
+            { title: "标题一：这个是标题一", content: "这是内容<img src='https://gips3.baidu.com/it/u=3886271102,3123389489&fm=3028&app=3028&f=JPEG&fmt=auto?w=1280&h=960'/>啊哈哈" },
+            { title: "标题二：这个是标题二", content: "这是内容哈哈哈" },
+            { title: "标题三：这个是标题三", content: "这是内容哈哈哈" }
+        ];
+
+        function renderList(data) {
+            var listEl = document.getElementById("list");
+            var html = "";
+            for (var i = 0; i < data.length; i++) {
+                html +=
+                    '<div class="list-item">' +
+                        '<div class="item-header" onclick="toggle(this)">' +
+                            '<span class="item-number">' + (i + 1) + '</span>' +
+                            '<span class="item-title">' + data[i].title + '</span>' +
+                            '<span class="item-arrow">' +
+                                '<svg viewBox="0 0 24 24"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6z"/></svg>' +
+                            '</span>' +
+                        '</div>' +
+                        '<div class="item-content">' +
+                            '<div class="item-content-inner">' + data[i].content + '</div>' +
+                        '</div>' +
+                    '</div>';
+            }
+            listEl.innerHTML = html;
+        }
+
+        function toggle(header) {
+            var item = header.parentElement;
+            var content = item.querySelector(".item-content");
+            var inner = content.querySelector(".item-content-inner");
+
+            if (item.classList.contains("active")) {
+                // 折叠
+                content.style.maxHeight = content.scrollHeight + "px";
+                // 强制回流后再设为 0，确保动画生效
+                content.offsetHeight;
+                content.style.maxHeight = "0";
+                item.classList.remove("active");
+            } else {
+                // 展开
+                content.style.maxHeight = inner.scrollHeight + "px";
+                item.classList.add("active");
+                // 动画结束后移除固定高度，让内容自适应
+                content.addEventListener("transitionend", function handler() {
+                    if (item.classList.contains("active")) {
+                        content.style.maxHeight = "none";
+                    }
+                    content.removeEventListener("transitionend", handler);
+                });
+            }
+        }
+
+        renderList(listData);
+    </script>
+</body>
+</html>
