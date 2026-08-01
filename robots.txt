@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+
+# 禁止抓取隐私政策与用户协议页面
+Disallow: /screen_privacy.html
+Disallow: /screen_agreement.html
+Disallow: /solitaire_privacy.html
+Disallow: /sudoku_privacy.html
+Disallow: /sudoku_user.html
+Disallow: /screen_question.html
