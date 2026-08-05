@@ -121,31 +121,35 @@
         console.log(brand);
         // 列表数据，可按需修改
         var listData = [
-            { title: "应用范围选择", 
-            content: "部分安卓手机在录制过程中，会出现“应用范围”的选择界面，建议选择“整个屏幕”可以保证录制的视频画面完整。如果只是选择“单个应用”，非选择的应用画面将缺失在视频中。<img src=\"images/choice_scope.jpg\"/>" },
-            { title: "视频中部分画面黑屏", 
-            content: "这是手机上的第三方应用，设置了安全隐私无法录制到画面的。常见的如登录界面输入用户名和密码后，无法录制到画面。还有支付界面输入支付密码后，无法录制到画面。" },
+            {
+                title: "应用范围选择",
+                content: "部分安卓手机在录制过程中会弹出「应用范围」选择界面。建议选择「整个屏幕」，以保证录制的视频画面完整；若仅选择「单个应用」，则未选中的应用画面将不会出现在视频中。<img src=\"images/choice_scope.jpg\"/>"
+            },
+            {
+                title: "视频中部分画面黑屏",
+                content: "这是手机第三方应用启用了隐私保护，导致无法录制画面所致。常见场景包括：登录界面输入账号密码后、以及支付界面输入支付密码后，对应画面将无法被录制下来。"
+            },
         ];
-        
-        if(brand) {
+
+        if (brand) {
             // 小米或红米品牌额外增加一条记录
             if (brand === "xiaomi" || brand === "redmi") {
-                var content = "在小米或红米手机上，在使用录屏助手录制微信、QQ等应用时,在通知栏上会出现防护中的字眼，此时需要点击它并选择“继续共享”。如果未共享屏幕则录制的视频画面会模糊。或者在设置中搜索电诈防护，然后关闭电诈防护,亦可解除模糊问题。";
-                content += "<img src=\"images/xiaomi1.jpg\"/><img src=\"images/xiaomi2.jpg\">"
-                listData.push({title: "微信画面模糊问题", content: content});
+                var content = "小米/红米手机使用录屏助手录制微信、QQ 等应用时，通知栏会显示「防护中」。此时需点击该提示并选择「继续共享」；若未共享屏幕，录制的视频画面会模糊。也可在设置中搜索「电诈防护」并将其关闭，同样可解决模糊问题。";
+                content += "<img src=\"images/xiaomi1.jpg\"/><img src=\"images/xiaomi2.jpg\">";
+                listData.push({ title: "微信画面模糊问题", content: content });
             }
             // oppo 或 一加 品牌额外增加一条记录
             if (brand === "oppo" || brand === "oneplus") {
                 listData.push({
                     title: "画面全部黑屏",
-                    content: "已知在OPPO或一加手机上，在录制后整个屏幕是黑屏的情况。请打开手机设置-隐私-屏幕共享保护，将“屏幕共享保护”关闭后，再进行录制。<img src=\"images/oneplus.jpg\"/>"
+                    content: "OPPO/一加手机录制后可能出现整屏黑屏。请进入手机「设置 - 隐私 - 屏幕共享保护」，将「屏幕共享保护」关闭后，再重新开始录制。<img src=\"images/oneplus.jpg\"/>"
                 });
             }
         }
         listData.push({
-                    title: "常见问题反馈",
-                    content: "可以在“我的”-》“意见反馈”中提交对本应用的反馈意见。或发送邮件406697678@qq.com的方式反馈。"
-                });
+            title: "常见问题反馈",
+            content: "可在「我的 - 意见反馈」中提交对本应用的意见或建议，也可发送邮件至 406697678@qq.com 进行反馈。"
+        });
 
         function renderList(data) {
             var listEl = document.getElementById("list");
