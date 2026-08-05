@@ -8,3 +8,7 @@ Disallow: /solitaire_privacy.html
 Disallow: /sudoku_privacy.html
 Disallow: /sudoku_user.html
 Disallow: /screen_question.html
+
+# 禁止抓取所有 json 与 md 文件
+Disallow: /*.json$
+Disallow: /*.md$

@@ -117,12 +117,35 @@
     </div>
 
     <script>
+        var brand = new URLSearchParams(window.location.search).get("brand");
+        console.log(brand);
         // 列表数据，可按需修改
         var listData = [
-            { title: "标题一：这个是标题一", content: "这是内容<img src='https://gips3.baidu.com/it/u=3886271102,3123389489&fm=3028&app=3028&f=JPEG&fmt=auto?w=1280&h=960'/>啊哈哈" },
-            { title: "标题二：这个是标题二", content: "这是内容哈哈哈" },
-            { title: "标题三：这个是标题三", content: "这是内容哈哈哈" }
+            { title: "应用范围选择", 
+            content: "部分安卓手机在录制过程中，会出现“应用范围”的选择界面，建议选择“整个屏幕”可以保证录制的视频画面完整。如果只是选择“单个应用”，非选择的应用画面将缺失在视频中。<img src=\"images/choice_scope.jpg\"/>" },
+            { title: "视频中部分画面黑屏", 
+            content: "这是手机上的第三方应用，设置了安全隐私无法录制到画面的。常见的如登录界面输入用户名和密码后，无法录制到画面。还有支付界面输入支付密码后，无法录制到画面。" },
         ];
+        
+        if(brand) {
+            // 小米或红米品牌额外增加一条记录
+            if (brand === "xiaomi" || brand === "redmi") {
+                var content = "在小米或红米手机上，在使用录屏助手录制微信、QQ等应用时,在通知栏上会出现防护中的字眼，此时需要点击它并选择“继续共享”。如果未共享屏幕则录制的视频画面会模糊。或者在设置中搜索电诈防护，然后关闭电诈防护,亦可解除模糊问题。";
+                content += "<img src=\"images/xiaomi1.jpg\"/><img src=\"images/xiaomi2.jpg\">"
+                listData.push({title: "微信画面模糊问题", content: content});
+            }
+            // oppo 或 一加 品牌额外增加一条记录
+            if (brand === "oppo" || brand === "oneplus") {
+                listData.push({
+                    title: "画面全部黑屏",
+                    content: "已知在OPPO或一加手机上，在录制后整个屏幕是黑屏的情况。请打开手机设置-隐私-屏幕共享保护，将“屏幕共享保护”关闭后，再进行录制。<img src=\"images/oneplus.jpg\"/>"
+                });
+            }
+        }
+        listData.push({
+                    title: "常见问题反馈",
+                    content: "可以在“我的”-》“意见反馈”中提交对本应用的反馈意见。或发送邮件406697678@qq.com的方式反馈。"
+                });
 
         function renderList(data) {
             var listEl = document.getElementById("list");
