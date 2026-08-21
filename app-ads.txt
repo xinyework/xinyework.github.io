@@ -93,3 +93,4 @@ video.unrulymedia.com, 839999282, RESELLER, 98c21ef9a666c68b
 video.unrulymedia.com, 905340553, RESELLER
 xandr.com, 13293, RESELLER, f5ab79cb980f11d1
 zetaglobal.net, 767, RESELLER
+verve.com, 1008379, RESELLER, 0c8f5958fc2d6270
