@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>录屏文件</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC","Microsoft YaHei",sans-serif;
+    background:linear-gradient(135deg,#e0f2fe,#f1f5f9);color:#0f172a;min-height:100vh;
+    padding:32px 16px;display:flex;justify-content:center;}
+  .container{width:100%;max-width:640px;}
+  .header{text-align:center;margin-bottom:26px;}
+  .logo{width:64px;height:64px;margin:0 auto 12px;border-radius:18px;
+    background:linear-gradient(135deg,#0ea5e9,#22d3ee);
+    display:flex;align-items:center;justify-content:center;font-size:32px;
+    box-shadow:0 8px 24px rgba(14,165,233,.35);}
+  .header h1{font-size:22px;font-weight:700;}
+  .header p{color:#64748b;font-size:13px;margin-top:6px;}
+  .card{background:#fff;border-radius:16px;box-shadow:0 4px 24px rgba(15,23,42,.06);overflow:hidden;}
+  .list{list-style:none;}
+  .item{display:flex;align-items:center;gap:14px;padding:16px 18px;
+    border-bottom:1px solid #e2e8f0;transition:background .15s;}
+  .item:last-child{border-bottom:none;}
+  .item:hover{background:#f8fafc;}
+  .thumb{width:44px;height:44px;flex:0 0 44px;border-radius:10px;
+    display:flex;align-items:center;justify-content:center;font-size:22px;}
+  .thumb.video{background:#e0f2fe;}
+  .thumb.image{background:#fef3c7;}
+  .meta{flex:1;min-width:0;}
+  .name{font-size:15px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .size{font-size:12px;color:#64748b;margin-top:2px;}
+  .dl{flex:0 0 auto;text-decoration:none;background:#0ea5e9;color:#fff;
+    font-size:13px;font-weight:600;padding:8px 16px;border-radius:10px;
+    transition:transform .1s,background .15s;}
+  .dl:hover{background:#0284c7;transform:translateY(-1px);}
+  .empty{padding:48px 16px;text-align:center;color:#64748b;line-height:1.6;}
+  .footer{text-align:center;color:#94a3b8;font-size:12px;margin-top:20px;}
+  .count{padding:14px 18px;font-size:13px;color:#64748b;background:#f8fafc;}
+</style>
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9996994469792310"
+     crossorigin="anonymous"></script>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <div class="logo">📡</div>
+    <h1>录屏文件</h1>
+    <p id="totalTip">共 ${files.length} 个文件 · 由 录屏助手 提供</p>
+  </div>
+  <div class="card" id="fileCard"></div>
+  <div class="footer">文件仅在本页开启时可用，传输完成后请返回应用关闭</div>
+</div>
+<script>
+(function(){
+  var p = new URLSearchParams(location.search);
+  var ip = p.get('ip') || '';
+  var port = p.get('port') || '';
+  var token = p.get('token') || '';
+  // 供后续逻辑使用的连接信息
+  window.serverInfo = {
+    ip: ip,
+    port: port,
+    token: token,
+    base: (ip && port) ? ('http://' + ip + ':' + port) : ''
+  };
+
+  // ---- 用解析出的参数请求文件列表接口 ----
+  function esc(s){
+    return String(s).replace(/[&<>"']/g, function(c){
+      return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+    });
+  }
+  function fmtSize(n){
+    n = Number(n);
+    if(!n || n < 0) return '';
+    if(n < 1024) return n + ' B';
+    if(n < 1048576) return (n/1024).toFixed(2) + ' KB';
+    if(n < 1073741824) return (n/1048576).toFixed(2) + ' MB';
+    return (n/1073741824).toFixed(2) + ' GB';
+  }
+  function toUrl(u){
+    if(!u) return '';
+    u = String(u);
+    if(/^[a-z]+:\/\//i.test(u)) return u;            // 已是完整地址
+    if(serverInfo.base) return serverInfo.base + '/' + u.replace(/^\/+/, '');
+    return u;
+  }
+  function parseList(data){
+    if(Array.isArray(data)) return data;
+    if(data && typeof data === 'object'){
+      return data.files || data.list || data.data || data.items || [];
+    }
+    return [];
+  }
+  function renderFiles(list, count){
+    var head ='';
+    if(!list.length) return head + '<div class="empty">暂无文件</div>';
+    return head + '<div class="list">' + list.map(function(f){
+      var name = f.name || f.file || f.filename || f.title || '(未命名)';
+      var size = f.size != null ? fmtSize(f.size) : '';
+      var raw = f.url || f.path || f.src || f.link || '';
+      if(!raw && serverInfo.base){
+        raw = serverInfo.base + '/download?t=' + encodeURIComponent(serverInfo.token) + '&name=' + encodeURIComponent(name);
+      }
+      var url = toUrl(raw);
+      var icon = /\.(mp4|mov|mkv|avi|webm|3gp)$/i.test(name) ? 'video'
+               : /\.(jpg|jpeg|png|gif|webp|bmp)$/i.test(name) ? 'image'
+               : 'video';
+      var emoji = icon === 'video' ? '🎬' : '🖼️';
+      var detailUrl = 'screen_video_detail.html?ip=' + encodeURIComponent(ip)
+        + '&port=' + encodeURIComponent(port)
+        + '&token=' + encodeURIComponent(token)
+        + '&name=' + encodeURIComponent(name);
+      var dl = '<a class="dl" href="' + esc(detailUrl) + '">详情</a>';
+      return '<div class="item">' +
+        '<div class="thumb ' + icon + '">' + emoji + '</div>' +
+        '<div class="meta"><div class="name">' + esc(name) + '</div>' +
+        (size ? '<div class="size">' + esc(size) + '</div>' : '') + '</div>' +
+        dl + '</div>';
+    }).join('') + '</div>';
+  }
+
+  if(serverInfo.base){
+    fetch(serverInfo.base + '/files?t=' + encodeURIComponent(serverInfo.token))
+      .then(function(r){
+        if(!r.ok) throw new Error('HTTP ' + r.status);
+        return r.json();
+      })
+      .then(function(data){
+        var list = parseList(data);
+        document.getElementById('fileCard').innerHTML = renderFiles(list, data && data.count);
+        if(data && data.count != null){
+          var tip = document.getElementById('totalTip');
+          if(tip) tip.textContent = '共 ' + data.count + ' 个文件 · 由 录屏助手 提供';
+        }
+      })
+      .catch(function(e){
+        var msg = ('获取文件列表失败：' + (e && e.message));
+        var tip = document.createElement('div');
+        tip.className = 'empty';
+        tip.textContent = msg;
+        document.getElementById('fileCard').appendChild(tip);
+      });
+  }
+})();
+</script>
+</body>
+</html>

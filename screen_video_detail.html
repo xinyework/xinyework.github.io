@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>录屏详情</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC","Microsoft YaHei",sans-serif;
+    background:linear-gradient(135deg,#e0f2fe,#f1f5f9);color:#0f172a;min-height:100vh;
+    padding:32px 16px;display:flex;justify-content:center;}
+  .container{width:100%;max-width:640px;}
+  .header{margin-bottom:20px;}
+  .back{display:inline-block;text-decoration:none;color:#0ea5e9;font-size:14px;font-weight:600;margin-bottom:10px;}
+  .back:hover{color:#0284c7;}
+  .header h1{font-size:20px;font-weight:700;word-break:break-all;}
+  .header p{color:#64748b;font-size:13px;margin-top:6px;}
+  .card{background:#fff;border-radius:16px;box-shadow:0 4px 24px rgba(15,23,42,.06);overflow:hidden;}
+  .preview{padding:18px;}
+  .preview video,.preview img{width:100%;max-height:60vh;border-radius:12px;background:#000;display:block;}
+  .actions{padding:0 18px 18px;display:flex;gap:12px;}
+  .dl{flex:1;text-align:center;text-decoration:none;background:#0ea5e9;color:#fff;
+    font-size:14px;font-weight:600;padding:12px 16px;border-radius:12px;transition:background .15s;}
+  .dl:hover{background:#0284c7;}
+  .empty{padding:48px 16px;text-align:center;color:#64748b;line-height:1.6;}
+</style>
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9996994469792310"
+     crossorigin="anonymous"></script>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <a class="back" href="javascript:history.back()">‹ 返回</a>
+    <h1 id="vname">加载中…</h1>
+    <p id="vsize"></p>
+  </div>
+  <div class="card" id="detail">
+    <div class="preview" id="preview"></div>
+    <div class="actions">
+      <a class="dl" id="dlBtn" href="#" download>下载</a>
+    </div>
+  </div>
+</div>
+<script>
+(function(){
+  var p = new URLSearchParams(location.search);
+  var ip = p.get('ip') || '';
+  var port = p.get('port') || '';
+  var token = p.get('token') || '';
+  var name = p.get('name') || '';
+  var base = (ip && port) ? ('http://' + ip + ':' + port) : '';
+  // 通过 ip:port 组合出的详情接口（返回 JSON）
+  var detailUrl = base ? (base + '/detail?name=' + encodeURIComponent(name) + '&t=' + encodeURIComponent(token)) : '';
+  // 详情接口不可用时降级用的下载地址
+  var fallbackUrl = base ? (base + '/download?t=' + encodeURIComponent(token) + '&name=' + encodeURIComponent(name)) : '';
+
+  function esc(s){
+    return String(s).replace(/[&<>"']/g, function(c){
+      return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+    });
+  }
+  function fmtSize(n){
+    n = Number(n);
+    if(!n || n < 0) return '';
+    if(n < 1024) return n + ' B';
+    if(n < 1048576) return (n/1024).toFixed(1) + ' KB';
+    if(n < 1073741824) return (n/1048576).toFixed(1) + ' MB';
+    return (n/1073741824).toFixed(1) + ' GB';
+  }
+
+  document.getElementById('vname').textContent = name || '(未命名)';
+  var preview = document.getElementById('preview');
+
+  function showPreview(url, fname){
+    if(!url){ preview.innerHTML = '<div class="empty">缺少服务器地址，无法预览/下载</div>'; return; }
+    var isImg = /\.(jpg|jpeg|png|gif|webp|bmp)$/i.test(fname || '');
+    preview.innerHTML = isImg
+      ? '<img src="' + esc(url) + '" alt="预览">'
+      : '<video src="' + esc(url) + '" controls preload="metadata"></video>';
+    document.getElementById('dlBtn').href = url;
+  }
+
+  if(detailUrl){
+    fetch(detailUrl)
+      .then(function(r){ if(!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+      .then(function(d){
+        d = d || {};
+        if(d.size != null) document.getElementById('vsize').textContent = fmtSize(d.size);
+        // 优先用接口返回的真实资源地址，否则降级到 /download
+        var resUrl = d.url || d.path || d.src || d.link || fallbackUrl;
+        showPreview(resUrl, d.name || name);
+      })
+      .catch(function(){ showPreview(fallbackUrl, name); }); // fetch 被 CORS 拦截时降级：video/img 加载不受 CORS 限制
+  } else {
+    showPreview(fallbackUrl, name);
+  }
+})();
+</script>
+</body>
+</html>
