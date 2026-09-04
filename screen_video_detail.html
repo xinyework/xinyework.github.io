@@ -18,9 +18,17 @@
   .card{background:#fff;border-radius:16px;box-shadow:0 4px 24px rgba(15,23,42,.06);overflow:hidden;}
   .preview{padding:18px;}
   .preview video,.preview img{width:100%;max-height:60vh;border-radius:12px;background:#000;display:block;}
-  .actions{padding:0 18px 18px;display:flex;gap:12px;}
-  .dl{flex:1;text-align:center;text-decoration:none;background:#0ea5e9;color:#fff;
-    font-size:14px;font-weight:600;padding:12px 16px;border-radius:12px;transition:background .15s;}
+  .list{list-style:none;border-top:1px solid #e2e8f0;}
+  .item{display:flex;align-items:center;gap:14px;padding:14px 18px;border-bottom:1px solid #e2e8f0;transition:background .15s;}
+  .item:last-child{border-bottom:none;}
+  .thumb{width:44px;height:44px;flex:0 0 44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:22px;}
+  .thumb.video{background:#e0f2fe;}
+  .thumb.image{background:#fef3c7;}
+  .meta{flex:1;min-width:0;}
+  .name{font-size:15px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .size{font-size:12px;color:#64748b;margin-top:2px;}
+  .btn{flex:0 0 auto;cursor:pointer;border:none;font-size:13px;font-weight:600;padding:8px 14px;border-radius:10px;transition:background .15s;}
+  .dl{background:#0ea5e9;color:#fff;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;}
   .dl:hover{background:#0284c7;}
   .empty{padding:48px 16px;text-align:center;color:#64748b;line-height:1.6;}
 </style>
@@ -32,13 +40,11 @@
   <div class="header">
     <a class="back" href="javascript:history.back()">‹ 返回</a>
     <h1 id="vname">加载中…</h1>
-    <p id="vsize"></p>
+    <p id="vcount"></p>
   </div>
   <div class="card" id="detail">
-    <div class="preview" id="preview"></div>
-    <div class="actions">
-      <a class="dl" id="dlBtn" href="#" download>下载</a>
-    </div>
+    <div class="preview" id="preview"><div class="empty">暂无视频可预览</div></div>
+    <div class="list" id="fileList"></div>
   </div>
 </div>
 <script>
@@ -47,12 +53,9 @@
   var ip = p.get('ip') || '';
   var port = p.get('port') || '';
   var token = p.get('token') || '';
-  var name = p.get('name') || '';
-  var base = (ip && port) ? ('http://' + ip + ':' + port) : '';
-  // 通过 ip:port 组合出的详情接口（返回 JSON）
-  var detailUrl = base ? (base + '/detail?name=' + encodeURIComponent(name) + '&t=' + encodeURIComponent(token)) : '';
-  // 详情接口不可用时降级用的下载地址
-  var fallbackUrl = base ? (base + '/download?t=' + encodeURIComponent(token) + '&name=' + encodeURIComponent(name)) : '';
+  var dir = p.get('name') || '';
+  var base = (ip && port) ? ('https://' + ip + ':' + port) : '';
+  var detailUrl = base ? (base + '/detail?name=' + encodeURIComponent(dir) + '&t=' + encodeURIComponent(token)) : '';
 
   function esc(s){
     return String(s).replace(/[&<>"']/g, function(c){
@@ -63,36 +66,80 @@
     n = Number(n);
     if(!n || n < 0) return '';
     if(n < 1024) return n + ' B';
-    if(n < 1048576) return (n/1024).toFixed(1) + ' KB';
-    if(n < 1073741824) return (n/1048576).toFixed(1) + ' MB';
-    return (n/1073741824).toFixed(1) + ' GB';
+    if(n < 1048576) return (n/1024).toFixed(2) + ' KB';
+    if(n < 1073741824) return (n/1048576).toFixed(2) + ' MB';
+    return (n/1073741824).toFixed(2) + ' GB';
   }
-
-  document.getElementById('vname').textContent = name || '(未命名)';
-  var preview = document.getElementById('preview');
-
+  function isImg(n){ return /\.(jpg|jpeg|png|gif|webp|bmp)$/i.test(n || ''); }
+  // name 参数为「目录 + 文件名」的完整路径（dir/realName）
+  function fullNameOf(f){
+    var fn = f.name || dir;
+    return dir ? (dir + '/' + fn) : fn;
+  }
+  // 预览接口（与下载接口分开）：优先用返回里的视频/预览地址，否则拼 /video
+  function previewUrlOf(f){
+    return f.video || f.preview || f.url || f.path || f.src || f.link
+      || (base ? (base + '/video?t=' + encodeURIComponent(token) + '&name=' + encodeURIComponent(dir)) : '');
+  }
+  // 下载接口：固定走 /download
+  function downloadUrlOf(f){
+    return f.download || (base ? (base + '/download?t=' + encodeURIComponent(token) + '&name=' + encodeURIComponent(fullNameOf(f))) : '');
+  }
+  // 混合内容提示：HTTPS 页面下浏览器会拦截/升级局域网 HTTP 请求
+  function mixedHint(){
+    return (location.protocol === 'https:' && /^http:\/\//.test(base))
+      ? '<br>（当前页面是 HTTPS，浏览器会把局域网 HTTP 请求升级/拦截。请用 http:// 或 file:// 打开本页，或让录屏助手开启 HTTPS）'
+      : '';
+  }
   function showPreview(url, fname){
-    if(!url){ preview.innerHTML = '<div class="empty">缺少服务器地址，无法预览/下载</div>'; return; }
-    var isImg = /\.(jpg|jpeg|png|gif|webp|bmp)$/i.test(fname || '');
-    preview.innerHTML = isImg
-      ? '<img src="' + esc(url) + '" alt="预览">'
-      : '<video src="' + esc(url) + '" controls preload="metadata"></video>';
-    document.getElementById('dlBtn').href = url;
+    var pv = document.getElementById('preview');
+    if(!url){ pv.innerHTML = '<div class="empty">无法预览</div>'; return; }
+    if(isImg(fname)){
+      pv.innerHTML = '<img src="' + esc(url) + '" alt="预览">';
+    } else {
+      pv.innerHTML = '<video src="' + esc(url) + '" controls preload="metadata"></video>';
+      pv.querySelector('video').addEventListener('error', function(){
+        pv.innerHTML = '<div class="empty">视频加载失败' + mixedHint() + '</div>';
+      });
+    }
+  }
+  function renderFiles(files){
+    var list = document.getElementById('fileList');
+    if(!files.length){ list.innerHTML = '<div class="empty">暂无文件</div>'; return; }
+    list.innerHTML = files.map(function(f){
+      var realName = f.name || dir;
+      var dl = downloadUrlOf(f);
+      var icon = isImg(realName) ? 'image' : 'video';
+      var emoji = icon === 'video' ? '🎬' : '🖼️';
+      var size = f.size != null ? fmtSize(f.size) : '';
+      return '<div class="item">'
+        + '<div class="thumb ' + icon + '">' + emoji + '</div>'
+        + '<div class="meta"><div class="name">' + esc(realName) + '</div>'
+        + (size ? '<div class="size">' + esc(size) + '</div>' : '') + '</div>'
+        + '<a class="btn dl" href="' + esc(dl) + '" download>下载</a></div>';
+    }).join('');
+    // 默认在固定预览区显示第一个视频（走预览接口，无需点击）
+    var firstVideo = files.filter(function(f){ return !isImg(f.name || dir); })[0];
+    if(firstVideo) showPreview(previewUrlOf(firstVideo), firstVideo.name || dir);
   }
 
+  document.getElementById('vname').textContent = dir || '(未命名)';
   if(detailUrl){
     fetch(detailUrl)
       .then(function(r){ if(!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
       .then(function(d){
         d = d || {};
-        if(d.size != null) document.getElementById('vsize').textContent = fmtSize(d.size);
-        // 优先用接口返回的真实资源地址，否则降级到 /download
-        var resUrl = d.url || d.path || d.src || d.link || fallbackUrl;
-        showPreview(resUrl, d.name || name);
+        var files = d.files || [];
+        if(d.dirname) document.getElementById('vname').textContent = d.dirname;
+        document.getElementById('vcount').textContent = '共 ' + (d.count != null ? d.count : files.length) + ' 个文件';
+        renderFiles(files);
       })
-      .catch(function(){ showPreview(fallbackUrl, name); }); // fetch 被 CORS 拦截时降级：video/img 加载不受 CORS 限制
+      .catch(function(){
+        document.getElementById('vcount').textContent = '（详情接口请求失败：可能是 CORS 或混合内容拦截）' + mixedHint();
+        renderFiles([{ name: dir }]);
+      });
   } else {
-    showPreview(fallbackUrl, name);
+    document.getElementById('fileList').innerHTML = '<div class="empty">缺少服务器地址</div>';
   }
 })();
 </script>

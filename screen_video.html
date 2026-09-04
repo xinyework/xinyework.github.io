@@ -104,9 +104,7 @@
         raw = serverInfo.base + '/download?t=' + encodeURIComponent(serverInfo.token) + '&name=' + encodeURIComponent(name);
       }
       var url = toUrl(raw);
-      var icon = /\.(mp4|mov|mkv|avi|webm|3gp)$/i.test(name) ? 'video'
-               : /\.(jpg|jpeg|png|gif|webp|bmp)$/i.test(name) ? 'image'
-               : 'video';
+      var icon ='video';
       var emoji = icon === 'video' ? '🎬' : '🖼️';
       var detailUrl = 'screen_video_detail.html?ip=' + encodeURIComponent(ip)
         + '&port=' + encodeURIComponent(port)
