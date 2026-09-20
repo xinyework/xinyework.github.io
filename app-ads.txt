@@ -95,3 +95,14 @@ video.unrulymedia.com, 905340553, RESELLER
 xandr.com, 13293, RESELLER, f5ab79cb980f11d1
 zetaglobal.net, 767, RESELLER
 verve.com, 1008379, RESELLER, 0c8f5958fc2d6270
+algorix.co, 604713, RESELLER, 5b394c12fea27a1d
+bidderdesk.com, 1a4fa3aa, RESELLER
+blueseasx.com, 7138165, RESELLER, 7998eac5087f6110
+media.net, 8CA5W5AK6, RESELLER
+playdigo.com, 2198, RESELLER, 92011346d63d3c30
+playdigo.com, 2200, RESELLER, 92011346d63d3c30
+pubnative.net, 1017792, RESELLER, d641df8625486a7b
+pubnative.net, 1017857, RESELLER, d641df8625486a7b
+rubiconproject.com, 28783, RESELLER, 0bfd66d529a55807
+smaato.com, 1100060400, RESELLER, 07bcf65f187117b4
+videoshakers.tv, 58204917364298, RESELLER, 819580c2afa8a3aa
