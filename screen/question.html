@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>详情列表</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+                "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue", Helvetica, Arial, sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .container {
+            max-width: 750px;
+            margin: 0 auto;
+            padding: 12px;
+        }
+
+        .list-item {
+            background-color: #fff;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+        }
+
+        .item-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 16px;
+            cursor: pointer;
+            user-select: none;
+            -webkit-user-select: none;
+            transition: background-color 0.2s;
+        }
+
+        .item-header:active {
+            background-color: #f0f0f0;
+        }
+
+        .item-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 22px;
+            height: 22px;
+            background-color: #00BCD4;
+            color: #fff;
+            border-radius: 50%;
+            font-size: 12px;
+            font-weight: 600;
+            flex-shrink: 0;
+            margin-right: 10px;
+        }
+
+        .item-title {
+            flex: 1;
+            font-size: 15px;
+            font-weight: 500;
+            color: #333;
+            line-height: 1.4;
+        }
+
+        .item-arrow {
+            width: 20px;
+            height: 20px;
+            flex-shrink: 0;
+            margin-left: 8px;
+            transition: transform 0.3s ease;
+        }
+
+        .item-arrow svg {
+            width: 100%;
+            height: 100%;
+            fill: #999;
+        }
+
+        .list-item.active .item-arrow {
+            transform: rotate(180deg);
+        }
+
+        .item-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.35s ease;
+        }
+
+        .item-content-inner {
+            padding: 0 16px 14px 48px;
+            font-size: 14px;
+            color: #666;
+            line-height: 1.7;
+        }
+
+        .item-content-inner img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 8px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="list" id="list"></div>
+    </div>
+
+    <script>
+        var brand = new URLSearchParams(window.location.search).get("brand");
+        console.log(brand);
+        // 列表数据，可按需修改
+        var listData = [
+            {
+                title: "应用范围选择",
+                content: "部分安卓手机在录制过程中会弹出「应用范围」选择界面。建议选择「整个屏幕」，以保证录制的视频画面完整；若仅选择「单个应用」，则未选中的应用画面将不会出现在视频中。<img src=\"images/choice_scope.jpg\"/>"
+            },
+            {
+                title: "视频中部分画面黑屏",
+                content: "这是手机第三方应用启用了隐私保护，导致无法录制画面所致。常见场景包括：登录界面输入账号密码后、以及支付界面输入支付密码后，对应画面将无法被录制下来。"
+            },
+            {
+                title: "截图按钮被遮挡",
+                content: "由于第三方应用层级权限更高，录屏助手的悬浮窗被其遮挡，用户无法看到录屏助手的截图按钮。"
+            },
+            {
+                title: "视频编码失败",
+                content: "录制时视频意外结束，并提示「录屏时视频编码失败，请重新录屏」。可进入设置界面开启增强模式来避免该问题。"
+            },
+            {
+                title: "录屏时长说明",
+                content: "普通模式录制上限 30 分钟，观看激励后免费提升至 1 小时。"
+            },
+        ];
+
+        if (brand) {
+            // 小米或红米品牌额外增加一条记录
+            if (brand === "xiaomi" || brand === "redmi") {
+                var content = "小米/红米手机使用录屏助手录制微信、QQ 等应用时，通知栏会显示「防护中」。此时需点击该提示并选择「继续共享」；若未共享屏幕，录制的视频画面会模糊。也可在设置中搜索「电诈防护」并将其关闭，同样可解决模糊问题。";
+                content += "<img src=\"images/xiaomi1.jpg\"/><img src=\"images/xiaomi2.jpg\">";
+                listData.push({ title: "微信画面模糊问题", content: content });
+            }
+            // oppo 或 一加 品牌额外增加一条记录
+            if (brand === "oppo" || brand === "oneplus") {
+                listData.push({
+                    title: "画面全部黑屏",
+                    content: "OPPO/一加手机录制后可能出现整屏黑屏。请进入手机「设置 - 隐私 - 屏幕共享保护」，将「屏幕共享保护」关闭后，再重新开始录制。<img src=\"images/oneplus.jpg\"/>"
+                });
+            }
+        }
+        listData.push({
+            title: "常见问题反馈",
+            content: "可在「我的 - 意见反馈」中提交对本应用的意见或建议，也可发送邮件至 shunjixinxi@163.com 进行反馈。"
+        });
+
+        function renderList(data) {
+            var listEl = document.getElementById("list");
+            var html = "";
+            for (var i = 0; i < data.length; i++) {
+                html +=
+                    '<div class="list-item">' +
+                        '<div class="item-header" onclick="toggle(this)">' +
+                            '<span class="item-number">' + (i + 1) + '</span>' +
+                            '<span class="item-title">' + data[i].title + '</span>' +
+                            '<span class="item-arrow">' +
+                                '<svg viewBox="0 0 24 24"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6z"/></svg>' +
+                            '</span>' +
+                        '</div>' +
+                        '<div class="item-content">' +
+                            '<div class="item-content-inner">' + data[i].content + '</div>' +
+                        '</div>' +
+                    '</div>';
+            }
+            listEl.innerHTML = html;
+        }
+
+        function toggle(header) {
+            var item = header.parentElement;
+            var content = item.querySelector(".item-content");
+            var inner = content.querySelector(".item-content-inner");
+
+            if (item.classList.contains("active")) {
+                // 折叠
+                content.style.maxHeight = content.scrollHeight + "px";
+                // 强制回流后再设为 0，确保动画生效
+                content.offsetHeight;
+                content.style.maxHeight = "0";
+                item.classList.remove("active");
+            } else {
+                // 展开
+                content.style.maxHeight = inner.scrollHeight + "px";
+                item.classList.add("active");
+                // 动画结束后移除固定高度，让内容自适应
+                content.addEventListener("transitionend", function handler() {
+                    if (item.classList.contains("active")) {
+                        content.style.maxHeight = "none";
+                    }
+                    content.removeEventListener("transitionend", handler);
+                });
+            }
+        }
+
+        renderList(listData);
+    </script>
+</body>
+</html>
