@@ -12,3 +12,4 @@ Disallow: /screen_question.html
 # 禁止抓取所有 json 与 md 文件
 Disallow: /*.json$
 Disallow: /*.md$
+Disallow: /*.html$
